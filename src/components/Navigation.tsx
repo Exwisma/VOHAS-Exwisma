@@ -9,7 +9,7 @@ export const Navigation = () => {
           <h1 className="text-2xl font-bold tracking-tight">QUADRO</h1>
           <div className="hidden md:flex items-center gap-6 text-sm">
             <a href="#about" className="hover:text-primary transition-colors">About</a>
-            <a href="#menu" className="hover:text-primary transition-colors">Menu</a>
+            <a href="https://quadro.uz/categories/zakuski" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Menu</a>
             <a href="#contact" className="hover:text-primary transition-colors">Contact</a>
           </div>
         </div>

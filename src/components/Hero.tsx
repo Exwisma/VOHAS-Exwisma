@@ -24,11 +24,15 @@ export const Hero = () => {
           Spanish appetizers, and paella.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button variant="hero" size="lg" className="text-lg px-8 py-6">
-            View Menu
+          <Button variant="hero" size="lg" className="text-lg px-8 py-6" asChild>
+            <a href="https://quadro.uz/categories/zakuski" target="_blank" rel="noopener noreferrer">
+              View Menu
+            </a>
           </Button>
-          <Button variant="heroOutline" size="lg" className="text-lg px-8 py-6">
-            Bar Menu
+          <Button variant="heroOutline" size="lg" className="text-lg px-8 py-6" asChild>
+            <a href="https://quadro.uz/bar_ru.pdf" target="_blank" rel="noopener noreferrer">
+              Bar Menu
+            </a>
           </Button>
         </div>
       </div>
