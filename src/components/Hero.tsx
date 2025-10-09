@@ -25,7 +25,7 @@ export const Hero = () => {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Button variant="hero" size="lg" className="text-lg px-8 py-6" asChild>
-            <a href="https://quadro.uz/categories/zakuski" target="_blank" rel="noopener noreferrer">
+            <a href="/menu">
               View Menu
             </a>
           </Button>
