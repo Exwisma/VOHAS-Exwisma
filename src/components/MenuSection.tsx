@@ -3,31 +3,32 @@ import appetizersImage from "@/assets/menu-appetizers.jpg";
 import paellaImage from "@/assets/menu-paella.jpg";
 import grillImage from "@/assets/menu-grill.jpg";
 import seafoodImage from "@/assets/menu-seafood.jpg";
+import test from "@/assets/test.png";
 
 const menuCategories = [
   {
-    title: "Appetizers",
-    subtitle: "Snacks",
+    title: "Закуски",
+    subtitle: "Закуски",
     image: appetizersImage,
-    description: "Traditional Spanish tapas and starters"
+    description: "Традиционные испанские тапас и закуски"
   },
   {
-    title: "Paella",
-    subtitle: "Traditional Rice",
+    title: "Паэлья",
+    subtitle: "Традиционный рис",
     image: paellaImage,
-    description: "Authentic Spanish paella with seafood"
+    description: "Настоящая испанская паэлья с морепродуктами"
   },
   {
-    title: "Grill",
-    subtitle: "Premium Steaks",
+    title: "Гриль",
+    subtitle: "Pремиум стейки",
     image: grillImage,
-    description: "Dry-aged steaks and grilled specialties"
+    description: "Стейки сухой выдержки и фирменные блюда на гриле"
   },
   {
-    title: "Seafood",
-    subtitle: "Fresh Catch",
+    title: "Морские Блюда",
+    subtitle: "Свежий улов",
     image: seafoodImage,
-    description: "Fresh seafood and ocean delicacies"
+    description: "Свежие морепродукты и океанские деликатесы"
   }
 ];
 
@@ -36,7 +37,7 @@ export const MenuSection = () => {
     <section id="menu" className="py-20 bg-secondary/30">
       <div className="container mx-auto px-4">
         <h2 className="text-5xl md:text-6xl font-bold text-center mb-16">
-          Our Cuisine
+          Наша Кухня
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
