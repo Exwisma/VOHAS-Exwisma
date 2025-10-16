@@ -6,11 +6,11 @@ export const Navigation = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <h1 className="text-2xl font-bold tracking-tight">VOHAS</h1>
+          <h1 className="text-2xl font-bold tracking-tight"><a href="/">VOHAS</a></h1>
           <div className="hidden md:flex items-center gap-6 text-sm">
-            <a href="#about" className="hover:text-primary transition-colors">О нас</a>
+            <a href="/about" className="hover:text-primary transition-colors">О нас</a>
             <a href="/menu" className="hover:text-primary transition-colors">Меню</a>
-            <a href="#contact" className="hover:text-primary transition-colors">Галлерея</a>
+            <a href="/gallery" className="hover:text-primary transition-colors">Галлерея</a>
           </div>
         </div>
         

@@ -25,16 +25,25 @@ export const Hero = () => {
           Отдохните от суеты и насладитесь безупречным сервисом, изысканными блюдами и душевной атмосферой.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button variant="hero" size="lg" className="text-lg px-8 py-6" asChild>
-            <a href="/menu">
-              Меню
-            </a>
-          </Button>
-          <Button variant="heroOutline" size="lg" className="text-lg px-8 py-6" asChild>
+         
+       
+           <Button variant="hero" size="lg" className="text-lg px-8 py-6" asChild>
             <a href="https://quadro.uz/bar_ru.pdf" target="_blank" rel="noopener noreferrer">
               Бар Меню
             </a>
           </Button>
+           <Button variant="heroOutline" size="lg" className="text-lg px-8 py-6" asChild>
+            <a href="/menu">
+              Меню
+            </a>
+          </Button>
+           
+           <Button variant="hero" size="lg" className="text-lg px-8 py-6" asChild>
+            <a href="/gallery">
+              Галлерея
+            </a>
+          </Button>
+        
         </div>
       </div>
     </section>
