@@ -83,9 +83,7 @@ export const MenuItems = () => {
                     alt={item.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                  <button className="absolute top-4 right-4 p-2 rounded-full bg-white/90 hover:bg-white transition-colors">
-                    <Heart className="h-5 w-5 text-destructive" />
-                  </button>
+                
                 </div>
                 
                 <div className="p-4">
