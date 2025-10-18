@@ -1,138 +1,100 @@
-import React, { useState } from 'react';
-import './AdminPanel.css';
+// src/components/AdminPanel/AdminAfterLogin.jsx
+import React, { useEffect, useState } from "react";
 
+const STORAGE_KEY = "menuData";
 
-export default function AdminPanel() {
-  const [menu, setMenu] = useState([
-    {
-      name: 'Pizza Margherita',
-      price: '10$',
-      image: 'https://cdn-icons-png.flaticon.com/512/1404/1404945.png',
-      desc: 'Классическая пицца с томатами, сыром и базиликом',
-    },
-    {
-      name: 'Cheeseburger',
-      price: '8$',
-      image: 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png',
-      desc: 'Сочный бургер с говядиной, сыром и соусом BBQ',
-    },
-    {
-      name: 'Pasta Carbonara',
-      price: '9$',
-      image: 'https://cdn-icons-png.flaticon.com/512/3480/3480816.png',
-      desc: 'Паста с беконом, сливками и пармезаном',
-    },
-    {
-      name: 'Caesar Salad',
-      price: '7$',
-      image: 'https://cdn-icons-png.flaticon.com/512/857/857681.png',
-      desc: 'Салат с курицей, сухариками и соусом Цезарь',
-    },
-    {
-      name: 'Sushi Set',
-      price: '15$',
-      image: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png',
-      desc: 'Набор роллов и суши с лососем и авокадо',
-    },
-    {
-      name: 'Taco',
-      price: '6$',
-      image: 'https://cdn-icons-png.flaticon.com/512/3174/3174880.png',
-      desc: 'Мексиканское тако с мясом и овощами',
-    },
-    {
-      name: 'Pizza Margherita',
-      price: '10$',
-      image: 'https://cdn-icons-png.flaticon.com/512/1404/1404945.png',
-      desc: 'Классическая пицца с томатами, сыром и базиликом',
-    },
-    {
-      name: 'Cheeseburger',
-      price: '8$',
-      image: 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png',
-      desc: 'Сочный бургер с говядиной, сыром и соусом BBQ',
-    },
-    {
-      name: 'Pasta Carbonara',
-      price: '9$',
-      image: 'https://cdn-icons-png.flaticon.com/512/3480/3480816.png',
-      desc: 'Паста с беконом, сливками и пармезаном',
-    },
-    {
-      name: 'Caesar Salad',
-      price: '7$',
-      image: 'https://cdn-icons-png.flaticon.com/512/857/857681.png',
-      desc: 'Салат с курицей, сухариками и соусом Цезарь',
-    },
-    {
-      name: 'Sushi Set',
-      price: '15$',
-      image: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png',
-      desc: 'Набор роллов и суши с лососем и авокадо',
-    },
-    {
-      name: 'Taco',
-      price: '6$',
-      image: 'https://cdn-icons-png.flaticon.com/512/3174/3174880.png',
-      desc: 'Мексиканское тако с мясом и овощами',
-    },{
-      name: 'Pizza Margherita',
-      price: '10$',
-      image: 'https://cdn-icons-png.flaticon.com/512/1404/1404945.png',
-      desc: 'Классическая пицца с томатами, сыром и базиликом',
-    },
-    {
-      name: 'Cheeseburger',
-      price: '8$',
-      image: 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png',
-      desc: 'Сочный бургер с говядиной, сыром и соусом BBQ',
-    },
-    {
-      name: 'Pasta Carbonara',
-      price: '9$',
-      image: 'https://cdn-icons-png.flaticon.com/512/3480/3480816.png',
-      desc: 'Паста с беконом, сливками и пармезаном',
-    },
-    {
-      name: 'Caesar Salad',
-      price: '7$',
-      image: 'https://cdn-icons-png.flaticon.com/512/857/857681.png',
-      desc: 'Салат с курицей, сухариками и соусом Цезарь',
-    },
-    {
-      name: 'Sushi Set',
-      price: '15$',
-      image: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png',
-      desc: 'Набор роллов и суши с лососем и авокадо',
-    },
-    {
-      name: 'Taco',
-      price: '6$',
-      image: 'https://cdn-icons-png.flaticon.com/512/3174/3174880.png',
-      desc: 'Мексиканское тако с мясом и овощами',
-    },
-  ]);
+function readStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error("parse menuData:", e);
+    return [];
+  }
+}
 
-  const [dish, setDish] = useState({ name: '', price: '', image: '', desc: '' });
-  const [alert, setAlert] = useState({ show: false, text: '', type: '' });
+function writeStorage(menu) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(menu));
+  } catch (e) {
+    console.error("write menuData:", e);
+  }
+}
 
-  const handleDelete = (index) => {
-    setMenu(menu.filter((_, i) => i !== index));
-    setAlert({ show: true, text: 'Блюдо удалено!', type: 'error' });
-    setTimeout(() => setAlert({ show: false, text: '', type: '' }), 2500);
+export default function AdminAfterLogin() {
+  const [menu, setMenu] = useState([]);
+  const [form, setForm] = useState({ name: "", nameRu: "", price: "", image: "", desc: "" });
+  const [editingId, setEditingId] = useState(null);
+  const [alert, setAlert] = useState({ show: false, text: "", type: "" });
+
+  useEffect(() => {
+    const saved = readStorage();
+    setMenu(saved);
+  }, []);
+
+  const showAlert = (text, type = "info") => {
+    setAlert({ show: true, text, type });
+    setTimeout(() => setAlert({ show: false, text: "", type: "" }), 2200);
   };
 
-  const handleAddDish = () => {
-    if (!dish.name || !dish.price || !dish.image) {
-      setAlert({ show: true, text: 'Заполните все поля!', type: 'error' });
-      setTimeout(() => setAlert({ show: false, text: '', type: '' }), 2500);
+  const saveMenu = (newMenu) => {
+    setMenu(newMenu);
+    writeStorage(newMenu);
+  };
+
+  const handleAddOrSave = () => {
+    if (!form.name || !form.price) {
+      showAlert("Заполните название и цену!", "error");
       return;
     }
 
-    setMenu([...menu, dish]);
-    setDish({ name: '', price: '', image: '', desc: '' });
-    setAlert({ show: true, text: 'Блюдо успешно добавлено!', type: 'success' });
-    setTimeout(() => setAlert({ show: false, text: '', type: '' }), 2500);
+    if (editingId) {
+      // Сохранение редактирования
+      const updated = menu.map((item) =>
+        item.id === editingId ? { ...item, ...form } : item
+      );
+      saveMenu(updated);
+      showAlert("Блюдо обновлено!", "success");
+      setEditingId(null);
+    } else {
+      // Добавление нового блюда
+      const newItem = { id: Date.now(), ...form };
+      saveMenu([...menu, newItem]);
+      showAlert("Блюдо добавлено!", "success");
+    }
+
+    setForm({ name: "", nameRu: "", price: "", image: "", desc: "" });
+  };
+
+  const handleDelete = (id) => {
+    if (!confirm("Вы уверены, что хотите удалить блюдо?")) return;
+    const updated = menu.filter((m) => m.id !== id);
+    saveMenu(updated);
+    // Если удалили тот, который редактировался — сброс формы
+    if (editingId === id) {
+      setEditingId(null);
+      setForm({ name: "", nameRu: "", price: "", image: "", desc: "" });
+    }
+    showAlert("Блюдо удалено!", "error");
+  };
+
+  const handleEdit = (id) => {
+    const item = menu.find((m) => m.id === id);
+    if (!item) return;
+    setForm({
+      name: item.name || "",
+      nameRu: item.nameRu || "",
+      price: item.price || "",
+      image: item.image || "",
+      desc: item.desc || "",
+    });
+    setEditingId(id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setForm({ name: "", nameRu: "", price: "", image: "", desc: "" });
   };
 
   return (
@@ -146,72 +108,104 @@ export default function AdminPanel() {
         <section className="admin-section">
           <h2>Меню</h2>
           <div className="menu-grid">
-            {menu.map((item, index) => (
-              <div className="menu-card" key={index}>
-                <div className="menu-info">
-                  {item.image && <img src={item.image} alt={item.name} className="menu-image" />}
-                  <div>
-                    <h3>{item.name}</h3>
-                    <p className="price">{item.price}</p>
-                    <p className="desc">{item.desc}</p>
+            {menu.length ? (
+              menu.map((item) => (
+                <div className="menu-card" key={item.id}>
+                  <div className="menu-info">
+                    {item.image && (
+                      <img src={item.image} alt={item.name} className="menu-image" />
+                    )}
+                    <div>
+                      <h3>{item.nameRu ? `${item.nameRu} / ${item.name}` : item.name}</h3>
+                      <p className="price">{item.price}</p>
+                      <p className="desc">{item.desc}</p>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <button className="add-btn" onClick={() => handleEdit(item.id)} title="Редактировать">
+                      ✏️
+                    </button>
+                    <button className="delete-btn" onClick={() => handleDelete(item.id)} title="Удалить">
+                      ✕
+                    </button>
                   </div>
                 </div>
-                <button className="delete-btn" onClick={() => handleDelete(index)}>✕</button>
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="empty">Меню пустое — добавь первое блюдо ниже.</div>
+            )}
           </div>
         </section>
 
         {/* ===== Добавить блюдо ===== */}
         <section className="admin-section form-section">
-          <h2>Добавить новое блюдо</h2>
-          <form className="add-form" onSubmit={(e) => e.preventDefault()}>
+          <h2>{editingId ? "Редактировать блюдо" : "Добавить новое блюдо"}</h2>
+          <form
+            className="add-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleAddOrSave();
+            }}
+          >
             <input
               type="text"
-              placeholder="Название блюда"
-              value={dish.name}
-              onChange={(e) => setDish({ ...dish, name: e.target.value })}
+              placeholder="Название (EN)"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
             <input
               type="text"
-              placeholder="Цена блюда"
-              value={dish.price}
-              onChange={(e) => setDish({ ...dish, price: e.target.value })}
+              placeholder="Название (RU)"
+              value={form.nameRu}
+              onChange={(e) => setForm({ ...form, nameRu: e.target.value })}
             />
             <input
               type="text"
-              placeholder="Ссылка на фото блюда"
-              value={dish.image}
-              onChange={(e) => setDish({ ...dish, image: e.target.value })}
+              placeholder="Цена (например: 132 000)"
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Ссылка на фото блюда (путь или URL)"
+              value={form.image}
+              onChange={(e) => setForm({ ...form, image: e.target.value })}
             />
             <textarea
               placeholder="Описание блюда"
               rows="3"
-              value={dish.desc}
-              onChange={(e) => setDish({ ...dish, desc: e.target.value })}
-            ></textarea>
+              value={form.desc}
+              onChange={(e) => setForm({ ...form, desc: e.target.value })}
+            />
 
-            {dish.image && (
-              <div className="image-preview">
-                <img src={dish.image} alt="preview" />
+            {form.image && (
+              <div className="image-preview" style={{ marginTop: 8 }}>
+                <img src={form.image} alt="preview" style={{ maxWidth: 140, borderRadius: 8 }} />
               </div>
             )}
 
-            <button type="button" className="add-btn" onClick={handleAddDish}>
-              Добавить
-            </button>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button type="submit" className="add-btn">
+                {editingId ? "Сохранить изменения" : "Добавить"}
+              </button>
+              {editingId && (
+                <button type="button" className="btn" onClick={handleCancelEdit}>
+                  Отмена
+                </button>
+              )}
+            </div>
           </form>
         </section>
 
         {/* ===== АЛЕРТ ===== */}
         {alert.show && (
-          <div className={`alert ${alert.type}`}>
+          <div className={`alert ${alert.type}`} style={{ position: "fixed", right: 20, bottom: 20 }}>
             <span className="alert-icon">
-              {alert.type === 'success' && '✅'}
-              {alert.type === 'error' && '❌'}
-              {alert.type === 'info' && 'ℹ️'}
+              {alert.type === "success" && "✅"}
+              {alert.type === "error" && "❌"}
+              {alert.type === "info" && "ℹ️"}
             </span>
-            <span>{alert.text}</span>
+            <span style={{ marginLeft: 8 }}>{alert.text}</span>
           </div>
         )}
       </main>
