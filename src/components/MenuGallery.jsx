@@ -43,7 +43,7 @@ const menuItems = {
     { name: "КРЕВЕТКИ НА ШПАЖКАХ", desc: "Пикантные креветки на шпажках", img: "https://img.iamcook.ru/2021/upl/recipes/cat/u-2242bf46e46ce5d960e69d02e7581d11.jpg" },
     { name: "СЫРНАЯ ТАРЕЛКА", desc: "Ассорти из европейских сыров", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwwB0tc_7AZVVXrY0YvLdXe-nfTaYe-yWOqA&s" },
     { name: "ОЛИВКИ", desc: "Маринованные оливки с пряностями", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUoMGdsrt56cc-7Cauciaj2GnXbdkCNygWww&s" },
-     { name: "БРУСКЕТТА", desc: "Хрустящий хлеб с томатами и базиликом", img: "https://avatars.mds.yandex.net/get-vertis-journal/4220003/86608532-47db-4325-b441-54a67c186490.jpg/1600x1600" },
+    { name: "БРУСКЕТТА", desc: "Хрустящий хлеб с томатами и базиликом", img: "https://avatars.mds.yandex.net/get-vertis-journal/4220003/86608532-47db-4325-b441-54a67c186490.jpg/1600x1600" },
     { name: "КРЕВЕТКИ НА ШПАЖКАХ", desc: "Пикантные креветки на шпажках", img: "https://img.iamcook.ru/2021/upl/recipes/cat/u-2242bf46e46ce5d960e69d02e7581d11.jpg" },
     { name: "СЫРНАЯ ТАРЕЛКА", desc: "Ассорти из европейских сыров", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwwB0tc_7AZVVXrY0YvLdXe-nfTaYe-yWOqA&s" },
     { name: "ОЛИВКИ", desc: "Маринованные оливки с пряностями", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUoMGdsrt56cc-7Cauciaj2GnXbdkCNygWww&s" }
