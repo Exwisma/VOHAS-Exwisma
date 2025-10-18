@@ -70,7 +70,7 @@ export const MenuCategories = () => {
                 {item.nameRu ? `${item.nameRu} / ${item.name}` : item.name}
               </h3>
               <p className="text-sm text-muted-foreground">{item.desc}</p>
-              <p className="mt-2 font-medium">{item.price}</p>
+              <p className="mt-2 font-medium">{item.price} сум</p>
             </div>
           ))
         ) : (
