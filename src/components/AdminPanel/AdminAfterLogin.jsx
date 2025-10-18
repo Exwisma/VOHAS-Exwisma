@@ -23,18 +23,25 @@ function writeStorage(menu) {
 
 export default function AdminAfterLogin() {
   const [menu, setMenu] = useState([]);
-  const [form, setForm] = useState({ name: "", nameRu: "", price: "", image: "", desc: "" });
+  const [form, setForm] = useState({
+    name: "",
+    nameRu: "",
+    price: "",
+    image: "",
+    desc: "",
+    type: "",
+  });
   const [editingId, setEditingId] = useState(null);
   const [alert, setAlert] = useState({ show: false, text: "", type: "" });
 
+  // ✅ Читаем меню при первом рендере
   useEffect(() => {
-    const saved = readStorage();
-    setMenu(saved);
+    setMenu(readStorage());
   }, []);
 
   const showAlert = (text, type = "info") => {
     setAlert({ show: true, text, type });
-    setTimeout(() => setAlert({ show: false, text: "", type: "" }), 2200);
+    setTimeout(() => setAlert({ show: false, text: "", type: "" }), 2000);
   };
 
   const saveMenu = (newMenu) => {
@@ -43,13 +50,13 @@ export default function AdminAfterLogin() {
   };
 
   const handleAddOrSave = () => {
-    if (!form.name || !form.price) {
-      showAlert("Заполните название и цену!", "error");
+    if (!form.name || !form.price || !form.type) {
+      showAlert("Заполните название, цену и категорию!", "error");
       return;
     }
 
     if (editingId) {
-      // Сохранение редактирования
+      // редактирование
       const updated = menu.map((item) =>
         item.id === editingId ? { ...item, ...form } : item
       );
@@ -57,24 +64,28 @@ export default function AdminAfterLogin() {
       showAlert("Блюдо обновлено!", "success");
       setEditingId(null);
     } else {
-      // Добавление нового блюда
+      // добавление нового
       const newItem = { id: Date.now(), ...form };
       saveMenu([...menu, newItem]);
       showAlert("Блюдо добавлено!", "success");
     }
 
-    setForm({ name: "", nameRu: "", price: "", image: "", desc: "" });
+    // сброс формы
+    setForm({
+      name: "",
+      nameRu: "",
+      price: "",
+      image: "",
+      desc: "",
+      type: "",
+    });
   };
 
   const handleDelete = (id) => {
-    if (!confirm("Вы уверены, что хотите удалить блюдо?")) return;
+    if (!window.confirm("Вы уверены, что хотите удалить блюдо?")) return;
     const updated = menu.filter((m) => m.id !== id);
     saveMenu(updated);
-    // Если удалили тот, который редактировался — сброс формы
-    if (editingId === id) {
-      setEditingId(null);
-      setForm({ name: "", nameRu: "", price: "", image: "", desc: "" });
-    }
+    if (editingId === id) handleCancelEdit();
     showAlert("Блюдо удалено!", "error");
   };
 
@@ -87,6 +98,7 @@ export default function AdminAfterLogin() {
       price: item.price || "",
       image: item.image || "",
       desc: item.desc || "",
+      type: item.type || "",
     });
     setEditingId(id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -94,7 +106,14 @@ export default function AdminAfterLogin() {
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setForm({ name: "", nameRu: "", price: "", image: "", desc: "" });
+    setForm({
+      name: "",
+      nameRu: "",
+      price: "",
+      image: "",
+      desc: "",
+      type: "",
+    });
   };
 
   return (
@@ -104,7 +123,7 @@ export default function AdminAfterLogin() {
           <h1>Административная панель</h1>
         </header>
 
-        {/* ===== Меню ===== */}
+        {/* ===== Список блюд ===== */}
         <section className="admin-section">
           <h2>Меню</h2>
           <div className="menu-grid">
@@ -113,31 +132,38 @@ export default function AdminAfterLogin() {
                 <div className="menu-card" key={item.id}>
                   <div className="menu-info">
                     {item.image && (
-                      <img src={item.image} alt={item.name} className="menu-image" />
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="menu-image"
+                      />
                     )}
                     <div>
-                      <h3>{item.nameRu ? `${item.nameRu} / ${item.name}` : item.name}</h3>
+                      <h3>
+                        {item.nameRu
+                          ? `${item.nameRu} / ${item.name}`
+                          : item.name}
+                      </h3>
                       <p className="price">{item.price}</p>
                       <p className="desc">{item.desc}</p>
+                      <p className="type">Категория: {item.type}</p>
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <button className="add-btn" onClick={() => handleEdit(item.id)} title="Редактировать">
-                      ✏️
-                    </button>
-                    <button className="delete-btn" onClick={() => handleDelete(item.id)} title="Удалить">
-                      ✕
-                    </button>
+                  <div
+                    style={{ display: "flex", gap: 8, alignItems: "center" }}
+                  >
+                    <button onClick={() => handleEdit(item.id)}>✏️</button>
+                    <button onClick={() => handleDelete(item.id)}>❌</button>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="empty">Меню пустое — добавь первое блюдо ниже.</div>
+              <div className="empty">Меню пустое — добавь блюдо ниже.</div>
             )}
           </div>
         </section>
 
-        {/* ===== Добавить блюдо ===== */}
+        {/* ===== Добавление/редактирование блюда ===== */}
         <section className="admin-section form-section">
           <h2>{editingId ? "Редактировать блюдо" : "Добавить новое блюдо"}</h2>
           <form
@@ -161,51 +187,58 @@ export default function AdminAfterLogin() {
             />
             <input
               type="text"
-              placeholder="Цена (например: 132 000)"
+              placeholder="Цена"
               value={form.price}
               onChange={(e) => setForm({ ...form, price: e.target.value })}
             />
             <input
               type="text"
-              placeholder="Ссылка на фото блюда (путь или URL)"
+              placeholder="URL картинки"
               value={form.image}
               onChange={(e) => setForm({ ...form, image: e.target.value })}
             />
+            <select
+              value={form.type}
+              onChange={(e) => setForm({ ...form, type: e.target.value })}
+            >
+              <option value="">Выберите категорию</option>
+              <option value="snacks">Закуски</option>
+              <option value="spreads">Намазки</option>
+              <option value="crudo">Крудо</option>
+              <option value="breakfast">Завтраки</option>
+              <option value="salads">Салаты</option>
+              <option value="soups">Супы</option>
+              <option value="desserts">Десерты</option>
+            </select>
             <textarea
-              placeholder="Описание блюда"
+              placeholder="Описание"
               rows="3"
               value={form.desc}
               onChange={(e) => setForm({ ...form, desc: e.target.value })}
             />
-
             {form.image && (
-              <div className="image-preview" style={{ marginTop: 8 }}>
-                <img src={form.image} alt="preview" style={{ maxWidth: 140, borderRadius: 8 }} />
-              </div>
+              <img
+                src={form.image}
+                alt="preview"
+                style={{ maxWidth: 120, borderRadius: 8, marginTop: 8 }}
+              />
             )}
-
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button type="submit" className="add-btn">
-                {editingId ? "Сохранить изменения" : "Добавить"}
-              </button>
-              {editingId && (
-                <button type="button" className="btn" onClick={handleCancelEdit}>
-                  Отмена
-                </button>
-              )}
-            </div>
+            <button
+              type="submit"
+              className={`action-btn ${editingId ? "save" : ""}`}
+            >
+              {editingId ? "Сохранить" : "Добавить"}
+            </button>
           </form>
         </section>
 
         {/* ===== АЛЕРТ ===== */}
         {alert.show && (
-          <div className={`alert ${alert.type}`} style={{ position: "fixed", right: 20, bottom: 20 }}>
-            <span className="alert-icon">
-              {alert.type === "success" && "✅"}
-              {alert.type === "error" && "❌"}
-              {alert.type === "info" && "ℹ️"}
-            </span>
-            <span style={{ marginLeft: 8 }}>{alert.text}</span>
+          <div
+            className={`alert ${alert.type}`}
+            style={{ position: "fixed", right: 20, bottom: 20 }}
+          >
+            {alert.text}
           </div>
         )}
       </main>

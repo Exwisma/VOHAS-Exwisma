@@ -5,7 +5,6 @@ export default function AdminLogin({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
   const handleLogin = (e) => {
     e.preventDefault();
 
