@@ -1,7 +1,7 @@
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { MenuCategories } from "@/components/MenuCategories";
-import { MenuItems } from "@/components/MenuItems";
+import MenuItems from "@/components/MenuItems";
 
 const Menu = () => {
   return (

@@ -6,6 +6,7 @@ export const defaultMenu = [
     nameRu: "Эмпанадас с говядиной",
     price: "84 000",
     image: "/menu-appetizers.jpg",
+    active: true,
   },
   {
     id: 2,
@@ -13,6 +14,7 @@ export const defaultMenu = [
     nameRu: "Костный мозг с багетом",
     price: "132 000",
     image: "/menu-grill.jpg",
+    active: true,
   },
   {
     id: 3,
@@ -20,5 +22,6 @@ export const defaultMenu = [
     nameRu: "Тигровые креветки с соусом манго",
     price: "94 000",
     image: "/menu-seafood.jpg",
+    active: true,
   },
 ];

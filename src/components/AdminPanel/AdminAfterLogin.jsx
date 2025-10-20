@@ -30,11 +30,11 @@ export default function AdminAfterLogin() {
     image: "",
     desc: "",
     type: "",
+    active: true,
   });
   const [editingId, setEditingId] = useState(null);
   const [alert, setAlert] = useState({ show: false, text: "", type: "" });
 
-  // ✅ Читаем меню при первом рендере
   useEffect(() => {
     setMenu(readStorage());
   }, []);
@@ -56,7 +56,6 @@ export default function AdminAfterLogin() {
     }
 
     if (editingId) {
-      // редактирование
       const updated = menu.map((item) =>
         item.id === editingId ? { ...item, ...form } : item
       );
@@ -64,13 +63,11 @@ export default function AdminAfterLogin() {
       showAlert("Блюдо обновлено!", "success");
       setEditingId(null);
     } else {
-      // добавление нового
       const newItem = { id: Date.now(), ...form };
       saveMenu([...menu, newItem]);
       showAlert("Блюдо добавлено!", "success");
     }
 
-    // сброс формы
     setForm({
       name: "",
       nameRu: "",
@@ -78,6 +75,7 @@ export default function AdminAfterLogin() {
       image: "",
       desc: "",
       type: "",
+      active: true,
     });
   };
 
@@ -99,6 +97,7 @@ export default function AdminAfterLogin() {
       image: item.image || "",
       desc: item.desc || "",
       type: item.type || "",
+      active: item.active ?? true,
     });
     setEditingId(id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -113,7 +112,16 @@ export default function AdminAfterLogin() {
       image: "",
       desc: "",
       type: "",
+      active: true,
     });
+  };
+
+  const toggleActive = (id) => {
+    const updated = menu.map((item) =>
+      item.id === id ? { ...item, active: !item.active } : item
+    );
+    saveMenu(updated);
+    showAlert("Статус активности изменён", "info");
   };
 
   return (
@@ -129,15 +137,25 @@ export default function AdminAfterLogin() {
           <div className="menu-grid">
             {menu.length ? (
               menu.map((item) => (
-                <div className="menu-card" key={item.id}>
+                <div
+                  className={`menu-card ${!item.active ? "inactive" : ""}`}
+                  key={item.id}
+                >
                   <div className="menu-info">
-                    {item.image && (
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="menu-image"
-                      />
-                    )}
+                    <div className="image-wrapper">
+                      {item.image && (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="menu-image"
+                        />
+                      )}
+                      {!item.active && (
+                        <div className="inactive-overlay">
+                          <span>НЕ АКТИВНО</span>
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <h3>
                         {item.nameRu
@@ -149,9 +167,10 @@ export default function AdminAfterLogin() {
                       <p className="type">Категория: {item.type}</p>
                     </div>
                   </div>
-                  <div
-                    style={{ display: "flex", gap: 8, alignItems: "center" }}
-                  >
+                  <div className="menu-buttons">
+                    <button onClick={() => toggleActive(item.id)}>
+                      {item.active ? "🔴 Сделать неактивным" : "🟢 Активировать"}
+                    </button>
                     <button onClick={() => handleEdit(item.id)}>✏️</button>
                     <button onClick={() => handleDelete(item.id)}>❌</button>
                   </div>
@@ -216,6 +235,14 @@ export default function AdminAfterLogin() {
               value={form.desc}
               onChange={(e) => setForm({ ...form, desc: e.target.value })}
             />
+            <label>
+              <input
+                type="checkbox"
+                checked={form.active}
+                onChange={(e) => setForm({ ...form, active: e.target.checked })}
+              />{" "}
+              Активно
+            </label>
             {form.image && (
               <img
                 src={form.image}
@@ -232,7 +259,6 @@ export default function AdminAfterLogin() {
           </form>
         </section>
 
-        {/* ===== АЛЕРТ ===== */}
         {alert.show && (
           <div
             className={`alert ${alert.type}`}
