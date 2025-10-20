@@ -57,15 +57,26 @@ export const MenuCategories = () => {
           filteredMenu.map((item) => (
             <div
               key={item.id}
-              className="border border-border rounded-2xl p-4 shadow-sm bg-card hover:shadow-md transition"
+              className={cn(
+                "relative border border-border rounded-2xl p-4 shadow-sm bg-card transition overflow-hidden",
+                !item.active && "opacity-50 grayscale"
+              )}
             >
               {item.image && (
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-40 object-cover rounded-xl mb-3"
-                />
+                <div className="relative">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-40 object-cover rounded-xl mb-3"
+                  />
+                  {!item.active && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-sm rounded-xl">
+                      Не активно
+                    </div>
+                  )}
+                </div>
               )}
+
               <h3 className="font-semibold text-lg">
                 {item.nameRu ? `${item.nameRu} / ${item.name}` : item.name}
               </h3>

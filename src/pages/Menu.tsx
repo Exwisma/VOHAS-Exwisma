@@ -18,7 +18,7 @@ const Menu = () => {
               <a href="/" className="hover:text-white transition-colors">Главная страница</a>
               <span className="mx-2">→</span>
               <span>Меню</span>
-            </nav>
+            </nav>  
             <h1 className="text-5xl md:text-6xl font-bold text-white">Меню</h1>
           </div>
         </div>

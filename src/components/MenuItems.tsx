@@ -1,4 +1,3 @@
-// src/components/Menu/MenuItems.jsx
 import React, { useEffect, useState } from "react";
 import { defaultMenu } from "../data/menuData";
 import "./MenuItems.css";
@@ -21,24 +20,25 @@ export default function MenuItems() {
     setMenu(readStorage());
   }, []);
 
-  const activeMenu = menu.filter((item) => item.active !== false);
-
   return (
     <div className="menu-items">
-      {activeMenu.length ? (
-        activeMenu.map((item) => (
-          <div className="menu-item" key={item.id}>
+      {menu.map((item) => (
+        <div
+          className={`menu-item ${item.active ? "active" : "inactive"}`}
+          key={item.id}
+        >
+          <div className="image-container">
             <img src={item.image} alt={item.name} className="menu-img" />
-            <div className="menu-info">
-              <h3>{item.nameRu ? `${item.nameRu} / ${item.name}` : item.name}</h3>
-              <p className="price">{item.price}</p>
-              {item.desc && <p className="desc">{item.desc}</p>}
-            </div>
+            {!item.active && <div className="overlay">Не активно</div>}
           </div>
-        ))
-      ) : (
-        <div className="empty">Пока нет активных блюд</div>
-      )}
+          <div className="menu-info">
+            <h3>
+              {item.nameRu ? `${item.nameRu} / ${item.name}` : item.name}
+            </h3>
+            <p className="price">{item.price} сум</p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
