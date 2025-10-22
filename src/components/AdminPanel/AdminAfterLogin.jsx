@@ -1,25 +1,13 @@
-// src/components/AdminPanel/AdminAfterLogin.jsx
 import React, { useEffect, useState } from "react";
-
-const STORAGE_KEY = "menuData";
-
-function readStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.error("parse menuData:", e);
-    return [];
-  }
-}
-
-function writeStorage(menu) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(menu));
-  } catch (e) {
-    console.error("write menuData:", e);
-  }
-}
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "../../firebaseConfig"; // adjust path if needed
 
 export default function AdminAfterLogin() {
   const [menu, setMenu] = useState([]);
@@ -34,61 +22,85 @@ export default function AdminAfterLogin() {
   const [editingId, setEditingId] = useState(null);
   const [alert, setAlert] = useState({ show: false, text: "", type: "" });
 
-  // ✅ Читаем меню при первом рендере
+  // ✅ Load menu from Firestore
   useEffect(() => {
-    setMenu(readStorage());
+    async function fetchMenu() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "menu"));
+        const items = querySnapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        setMenu(items);
+      } catch (error) {
+        console.error("Error loading menu:", error);
+        showAlert("Ошибка при загрузке меню!", "error");
+      }
+    }
+    fetchMenu();
   }, []);
 
+  // ✅ Alert function
   const showAlert = (text, type = "info") => {
     setAlert({ show: true, text, type });
     setTimeout(() => setAlert({ show: false, text: "", type: "" }), 2000);
   };
 
-  const saveMenu = (newMenu) => {
-    setMenu(newMenu);
-    writeStorage(newMenu);
-  };
-
-  const handleAddOrSave = () => {
+  // ✅ Add or update item
+  const handleAddOrSave = async () => {
     if (!form.name || !form.price || !form.type) {
       showAlert("Заполните название, цену и категорию!", "error");
       return;
     }
 
-    if (editingId) {
-      // редактирование
-      const updated = menu.map((item) =>
-        item.id === editingId ? { ...item, ...form } : item
-      );
-      saveMenu(updated);
-      showAlert("Блюдо обновлено!", "success");
-      setEditingId(null);
-    } else {
-      // добавление нового
-      const newItem = { id: Date.now(), ...form };
-      saveMenu([...menu, newItem]);
-      showAlert("Блюдо добавлено!", "success");
+    try {
+      if (editingId) {
+        // 🔁 Update existing item
+        const docRef = doc(db, "menu", editingId);
+        await updateDoc(docRef, { ...form });
+        const updated = menu.map((item) =>
+          item.id === editingId ? { id: editingId, ...form } : item
+        );
+        setMenu(updated);
+        showAlert("Блюдо обновлено!", "success");
+        setEditingId(null);
+      } else {
+        // ➕ Add new item
+        const docRef = await addDoc(collection(db, "menu"), { ...form });
+        setMenu([...menu, { id: docRef.id, ...form }]);
+        showAlert("Блюдо добавлено!", "success");
+      }
+
+      // Reset form
+      setForm({
+        name: "",
+        nameRu: "",
+        price: "",
+        image: "",
+        desc: "",
+        type: "",
+      });
+    } catch (error) {
+      console.error(error);
+      showAlert("Ошибка при сохранении!", "error");
     }
-
-    // сброс формы
-    setForm({
-      name: "",
-      nameRu: "",
-      price: "",
-      image: "",
-      desc: "",
-      type: "",
-    });
   };
 
-  const handleDelete = (id) => {
+  // ✅ Delete item
+  const handleDelete = async (id) => {
     if (!window.confirm("Вы уверены, что хотите удалить блюдо?")) return;
-    const updated = menu.filter((m) => m.id !== id);
-    saveMenu(updated);
-    if (editingId === id) handleCancelEdit();
-    showAlert("Блюдо удалено!", "error");
+    try {
+      await deleteDoc(doc(db, "menu", id));
+      const updated = menu.filter((m) => m.id !== id);
+      setMenu(updated);
+      showAlert("Блюдо удалено!", "error");
+    } catch (error) {
+      console.error(error);
+      showAlert("Ошибка при удалении!", "error");
+    }
   };
 
+  // ✅ Edit item
   const handleEdit = (id) => {
     const item = menu.find((m) => m.id === id);
     if (!item) return;
@@ -149,9 +161,7 @@ export default function AdminAfterLogin() {
                       <p className="type">Категория: {item.type}</p>
                     </div>
                   </div>
-                  <div
-                    style={{ display: "flex", gap: 8, alignItems: "center" }}
-                  >
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <button onClick={() => handleEdit(item.id)}>✏️</button>
                     <button onClick={() => handleDelete(item.id)}>❌</button>
                   </div>
@@ -229,6 +239,16 @@ export default function AdminAfterLogin() {
             >
               {editingId ? "Сохранить" : "Добавить"}
             </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="cancel-btn"
+                style={{ marginLeft: 8 }}
+              >
+                Отмена
+              </button>
+            )}
           </form>
         </section>
 
