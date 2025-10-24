@@ -1,24 +1,26 @@
-// Import the SDKs you need
+// src/firebaseConfig.ts
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
-// Your Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyD1bQC0UWAX390J84mPEoHF2Kb9c4pr0JA",
-  authDomain: "vohas-62203.firebaseapp.com",
-  projectId: "vohas-62203",
-  storageBucket: "vohas-62203.firebasestorage.app",
-  messagingSenderId: "953094015407",
-  appId: "1:953094015407:web:7f492adcefd490d643075a",
-  measurementId: "G-XVK61QDF3M"
+  apiKey: "AIzaSyD1bljDaOeyqM7Qd7nvJJai6TfsKVlXPFo",
+  authDomain: "vohas-a9307.firebaseapp.com",
+  projectId: "vohas-a9307",
+  storageBucket: "vohas-a9307.firebasestorage.app",
+  messagingSenderId: "399499547275",
+  appId: "1:399499547275:web:9064d6a2647f43c035ba8e",
+  measurementId: "G-Q9MXJYRRZF"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-// Export Firebase services
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-export const storage = getStorage(app);
+let analytics: ReturnType<typeof getAnalytics> | null = null;
+if (typeof window !== "undefined") {
+  isSupported().then((ok) => {
+    if (ok) analytics = getAnalytics(app);
+  });
+}
+
+export { app, db, analytics };
