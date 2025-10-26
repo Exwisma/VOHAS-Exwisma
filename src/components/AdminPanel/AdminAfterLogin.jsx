@@ -18,11 +18,12 @@ export default function AdminAfterLogin() {
     image: "",
     desc: "",
     type: "",
+    active: true, // default active
   });
   const [editingId, setEditingId] = useState(null);
   const [alert, setAlert] = useState({ show: false, text: "", type: "" });
 
-  // ✅ Load menu from Firestore
+  // ✅ Load all menu items (active + inactive)
   useEffect(() => {
     async function fetchMenu() {
       try {
@@ -40,13 +41,12 @@ export default function AdminAfterLogin() {
     fetchMenu();
   }, []);
 
-  // ✅ Alert function
   const showAlert = (text, type = "info") => {
     setAlert({ show: true, text, type });
     setTimeout(() => setAlert({ show: false, text: "", type: "" }), 2000);
   };
 
-  // ✅ Add or update item
+  // ✅ Add or Update
   const handleAddOrSave = async () => {
     if (!form.name || !form.price || !form.type) {
       showAlert("Заполните название, цену и категорию!", "error");
@@ -55,7 +55,6 @@ export default function AdminAfterLogin() {
 
     try {
       if (editingId) {
-        // 🔁 Update existing item
         const docRef = doc(db, "menu", editingId);
         await updateDoc(docRef, { ...form });
         const updated = menu.map((item) =>
@@ -65,13 +64,11 @@ export default function AdminAfterLogin() {
         showAlert("Блюдо обновлено!", "success");
         setEditingId(null);
       } else {
-        // ➕ Add new item
         const docRef = await addDoc(collection(db, "menu"), { ...form });
         setMenu([...menu, { id: docRef.id, ...form }]);
         showAlert("Блюдо добавлено!", "success");
       }
 
-      // Reset form
       setForm({
         name: "",
         nameRu: "",
@@ -79,6 +76,7 @@ export default function AdminAfterLogin() {
         image: "",
         desc: "",
         type: "",
+        active: true,
       });
     } catch (error) {
       console.error(error);
@@ -88,11 +86,10 @@ export default function AdminAfterLogin() {
 
   // ✅ Delete item
   const handleDelete = async (id) => {
-    if (!window.confirm("Вы уверены, что хотите удалить блюдо?")) return;
+    if (!window.confirm("Удалить блюдо?")) return;
     try {
       await deleteDoc(doc(db, "menu", id));
-      const updated = menu.filter((m) => m.id !== id);
-      setMenu(updated);
+      setMenu(menu.filter((m) => m.id !== id));
       showAlert("Блюдо удалено!", "error");
     } catch (error) {
       console.error(error);
@@ -111,6 +108,7 @@ export default function AdminAfterLogin() {
       image: item.image || "",
       desc: item.desc || "",
       type: item.type || "",
+      active: item.active ?? true,
     });
     setEditingId(id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -125,7 +123,26 @@ export default function AdminAfterLogin() {
       image: "",
       desc: "",
       type: "",
+      active: true,
     });
+  };
+
+  // ✅ Toggle active directly from list
+  const toggleActive = async (id, currentValue) => {
+    try {
+      const docRef = doc(db, "menu", id);
+      await updateDoc(docRef, { active: !currentValue });
+      setMenu((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, active: !currentValue } : m))
+      );
+      showAlert(
+        `Статус изменён: ${!currentValue ? "Активно" : "Не активно"}`,
+        "success"
+      );
+    } catch (error) {
+      console.error(error);
+      showAlert("Ошибка при изменении статуса!", "error");
+    }
   };
 
   return (
@@ -141,7 +158,16 @@ export default function AdminAfterLogin() {
           <div className="menu-grid">
             {menu.length ? (
               menu.map((item) => (
-                <div className="menu-card" key={item.id}>
+                <div
+                  key={item.id}
+                  className={`menu-card ${!item.active ? "inactive" : ""}`}
+                  style={{
+                    opacity: item.active ? 1 : 0.6,
+                    border: item.active
+                      ? "1px solid #4caf50"
+                      : "1px solid #ccc",
+                  }}
+                >
                   <div className="menu-info">
                     {item.image && (
                       <img
@@ -159,11 +185,24 @@ export default function AdminAfterLogin() {
                       <p className="price">{item.price}</p>
                       <p className="desc">{item.desc}</p>
                       <p className="type">Категория: {item.type}</p>
+                      <p>
+                        Статус:{" "}
+                        <strong
+                          style={{
+                            color: item.active ? "green" : "red",
+                          }}
+                        >
+                          {item.active ? "Активно" : "Скрыто"}
+                        </strong>
+                      </p>
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={() => handleEdit(item.id)}>✏️</button>
                     <button onClick={() => handleDelete(item.id)}>❌</button>
+                    <button onClick={() => toggleActive(item.id, item.active)}>
+                      {item.active ? "👁️ Hide" : "👁️ Show"}
+                    </button>
                   </div>
                 </div>
               ))
@@ -173,7 +212,7 @@ export default function AdminAfterLogin() {
           </div>
         </section>
 
-        {/* ===== Добавление/редактирование блюда ===== */}
+        {/* ===== Форма добавления/редактирования ===== */}
         <section className="admin-section form-section">
           <h2>{editingId ? "Редактировать блюдо" : "Добавить новое блюдо"}</h2>
           <form
@@ -210,6 +249,20 @@ export default function AdminAfterLogin() {
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
+              style={{
+                width: "100%",
+                padding: "14px 20px",
+                borderRadius: "10px",
+                border: "1px solid #ccc",
+                fontSize: "16px",
+                appearance: "none",
+                backgroundColor: "#fff",
+                backgroundImage:
+                  'url(\'data:image/svg+xml;utf8,<svg fill="%23666" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>\')',
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right 14px center", // 👈 moved arrow slightly right
+                cursor: "pointer",
+              }}
             >
               <option value="">Выберите категорию</option>
               <option value="snacks">Закуски</option>
@@ -220,12 +273,24 @@ export default function AdminAfterLogin() {
               <option value="soups">Супы</option>
               <option value="desserts">Десерты</option>
             </select>
+
             <textarea
               placeholder="Описание"
               rows="3"
               value={form.desc}
               onChange={(e) => setForm({ ...form, desc: e.target.value })}
             />
+
+            {/* ✅ Active toggle */}
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={form.active}
+                onChange={(e) => setForm({ ...form, active: e.target.checked })}
+              />
+              Активно (показывать пользователям)
+            </label>
+
             {form.image && (
               <img
                 src={form.image}
@@ -233,6 +298,7 @@ export default function AdminAfterLogin() {
                 style={{ maxWidth: 120, borderRadius: 8, marginTop: 8 }}
               />
             )}
+
             <button
               type="submit"
               className={`action-btn ${editingId ? "save" : ""}`}
@@ -252,7 +318,6 @@ export default function AdminAfterLogin() {
           </form>
         </section>
 
-        {/* ===== АЛЕРТ ===== */}
         {alert.show && (
           <div
             className={`alert ${alert.type}`}

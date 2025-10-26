@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebaseConfig"; // ✅ make sure the path is correct
 
 export const MenuItems = () => {
@@ -9,11 +9,16 @@ export const MenuItems = () => {
   useEffect(() => {
     async function fetchMenu() {
       try {
-        const querySnapshot = await getDocs(collection(db, "menu"));
+        // ✅ Get only items with active == true
+        const q = query(collection(db, "menu"), where("active", "==", true));
+        const querySnapshot = await getDocs(q);
+
+        // ✅ Map docs to objects
         const items = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+
         setMenuItems(items);
       } catch (error) {
         console.error("Error fetching menu:", error);
@@ -54,7 +59,9 @@ export const MenuItems = () => {
 
                   <div className="p-4">
                     <h3 className="font-medium mb-1 group-hover:text-primary transition-colors">
-                      {item.nameRu ? `${item.nameRu} / ${item.name}` : item.name}
+                      {item.nameRu
+                        ? `${item.nameRu} / ${item.name}`
+                        : item.name}
                     </h3>
                     <p className="text-lg font-semibold text-primary">
                       {item.price} сум
