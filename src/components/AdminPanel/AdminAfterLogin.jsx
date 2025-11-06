@@ -1,25 +1,13 @@
-// src/components/AdminPanel/AdminAfterLogin.jsx
 import React, { useEffect, useState } from "react";
-
-const STORAGE_KEY = "menuData";
-
-function readStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.error("parse menuData:", e);
-    return [];
-  }
-}
-
-function writeStorage(menu) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(menu));
-  } catch (e) {
-    console.error("write menuData:", e);
-  }
-}
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "../../firebaseConfig"; // adjust path if needed
 
 export default function AdminAfterLogin() {
   const [menu, setMenu] = useState([]);
@@ -30,13 +18,27 @@ export default function AdminAfterLogin() {
     image: "",
     desc: "",
     type: "",
-    active: true,
+    active: true, // default active
   });
   const [editingId, setEditingId] = useState(null);
   const [alert, setAlert] = useState({ show: false, text: "", type: "" });
 
+  // ✅ Load all menu items (active + inactive)
   useEffect(() => {
-    setMenu(readStorage());
+    async function fetchMenu() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "menu"));
+        const items = querySnapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        setMenu(items);
+      } catch (error) {
+        console.error("Error loading menu:", error);
+        showAlert("Ошибка при загрузке меню!", "error");
+      }
+    }
+    fetchMenu();
   }, []);
 
   const showAlert = (text, type = "info") => {
@@ -44,49 +46,58 @@ export default function AdminAfterLogin() {
     setTimeout(() => setAlert({ show: false, text: "", type: "" }), 2000);
   };
 
-  const saveMenu = (newMenu) => {
-    setMenu(newMenu);
-    writeStorage(newMenu);
-  };
-
-  const handleAddOrSave = () => {
+  // ✅ Add or Update
+  const handleAddOrSave = async () => {
     if (!form.name || !form.price || !form.type) {
       showAlert("Заполните название, цену и категорию!", "error");
       return;
     }
 
-    if (editingId) {
-      const updated = menu.map((item) =>
-        item.id === editingId ? { ...item, ...form } : item
-      );
-      saveMenu(updated);
-      showAlert("Блюдо обновлено!", "success");
-      setEditingId(null);
-    } else {
-      const newItem = { id: Date.now(), ...form };
-      saveMenu([...menu, newItem]);
-      showAlert("Блюдо добавлено!", "success");
+    try {
+      if (editingId) {
+        const docRef = doc(db, "menu", editingId);
+        await updateDoc(docRef, { ...form });
+        const updated = menu.map((item) =>
+          item.id === editingId ? { id: editingId, ...form } : item
+        );
+        setMenu(updated);
+        showAlert("Блюдо обновлено!", "success");
+        setEditingId(null);
+      } else {
+        const docRef = await addDoc(collection(db, "menu"), { ...form });
+        setMenu([...menu, { id: docRef.id, ...form }]);
+        showAlert("Блюдо добавлено!", "success");
+      }
+
+      setForm({
+        name: "",
+        nameRu: "",
+        price: "",
+        image: "",
+        desc: "",
+        type: "",
+        active: true,
+      });
+    } catch (error) {
+      console.error(error);
+      showAlert("Ошибка при сохранении!", "error");
     }
-
-    setForm({
-      name: "",
-      nameRu: "",
-      price: "",
-      image: "",
-      desc: "",
-      type: "",
-      active: true,
-    });
   };
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Вы уверены, что хотите удалить блюдо?")) return;
-    const updated = menu.filter((m) => m.id !== id);
-    saveMenu(updated);
-    if (editingId === id) handleCancelEdit();
-    showAlert("Блюдо удалено!", "error");
+  // ✅ Delete item
+  const handleDelete = async (id) => {
+    if (!window.confirm("Удалить блюдо?")) return;
+    try {
+      await deleteDoc(doc(db, "menu", id));
+      setMenu(menu.filter((m) => m.id !== id));
+      showAlert("Блюдо удалено!", "error");
+    } catch (error) {
+      console.error(error);
+      showAlert("Ошибка при удалении!", "error");
+    }
   };
 
+  // ✅ Edit item
   const handleEdit = (id) => {
     const item = menu.find((m) => m.id === id);
     if (!item) return;
@@ -116,12 +127,22 @@ export default function AdminAfterLogin() {
     });
   };
 
-  const toggleActive = (id) => {
-    const updated = menu.map((item) =>
-      item.id === id ? { ...item, active: !item.active } : item
-    );
-    saveMenu(updated);
-    showAlert("Статус активности изменён", "info");
+  // ✅ Toggle active directly from list
+  const toggleActive = async (id, currentValue) => {
+    try {
+      const docRef = doc(db, "menu", id);
+      await updateDoc(docRef, { active: !currentValue });
+      setMenu((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, active: !currentValue } : m))
+      );
+      showAlert(
+        `Статус изменён: ${!currentValue ? "Активно" : "Не активно"}`,
+        "success"
+      );
+    } catch (error) {
+      console.error(error);
+      showAlert("Ошибка при изменении статуса!", "error");
+    }
   };
 
   return (
@@ -138,24 +159,23 @@ export default function AdminAfterLogin() {
             {menu.length ? (
               menu.map((item) => (
                 <div
-                  className={`menu-card ${!item.active ? "inactive" : ""}`}
                   key={item.id}
+                  className={`menu-card ${!item.active ? "inactive" : ""}`}
+                  style={{
+                    opacity: item.active ? 1 : 0.6,
+                    border: item.active
+                      ? "1px solid #4caf50"
+                      : "1px solid #ccc",
+                  }}
                 >
                   <div className="menu-info">
-                    <div className="image-wrapper">
-                      {item.image && (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="menu-image"
-                        />
-                      )}
-                      {!item.active && (
-                        <div className="inactive-overlay">
-                          <span>НЕ АКТИВНО</span>
-                        </div>
-                      )}
-                    </div>
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="menu-image"
+                      />
+                    )}
                     <div>
                       <h3>
                         {item.nameRu
@@ -165,14 +185,24 @@ export default function AdminAfterLogin() {
                       <p className="price">{item.price}</p>
                       <p className="desc">{item.desc}</p>
                       <p className="type">Категория: {item.type}</p>
+                      <p>
+                        Статус:{" "}
+                        <strong
+                          style={{
+                            color: item.active ? "green" : "red",
+                          }}
+                        >
+                          {item.active ? "Активно" : "Скрыто"}
+                        </strong>
+                      </p>
                     </div>
                   </div>
-                  <div className="menu-buttons">
-                    <button onClick={() => toggleActive(item.id)}>
-                      {item.active ? "🔴 Сделать неактивным" : "🟢 Активировать"}
-                    </button>
+                  <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={() => handleEdit(item.id)}>✏️</button>
                     <button onClick={() => handleDelete(item.id)}>❌</button>
+                    <button onClick={() => toggleActive(item.id, item.active)}>
+                      {item.active ? "👁️ Hide" : "👁️ Show"}
+                    </button>
                   </div>
                 </div>
               ))
@@ -182,7 +212,7 @@ export default function AdminAfterLogin() {
           </div>
         </section>
 
-        {/* ===== Добавление/редактирование блюда ===== */}
+        {/* ===== Форма добавления/редактирования ===== */}
         <section className="admin-section form-section">
           <h2>{editingId ? "Редактировать блюдо" : "Добавить новое блюдо"}</h2>
           <form
@@ -219,6 +249,20 @@ export default function AdminAfterLogin() {
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
+              style={{
+                width: "100%",
+                padding: "14px 20px",
+                borderRadius: "10px",
+                border: "1px solid #ccc",
+                fontSize: "16px",
+                appearance: "none",
+                backgroundColor: "#fff",
+                backgroundImage:
+                  'url(\'data:image/svg+xml;utf8,<svg fill="%23666" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>\')',
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right 14px center", // 👈 moved arrow slightly right
+                cursor: "pointer",
+              }}
             >
               <option value="">Выберите категорию</option>
               <option value="snacks">Закуски</option>
@@ -229,20 +273,24 @@ export default function AdminAfterLogin() {
               <option value="soups">Супы</option>
               <option value="desserts">Десерты</option>
             </select>
+
             <textarea
               placeholder="Описание"
               rows="3"
               value={form.desc}
               onChange={(e) => setForm({ ...form, desc: e.target.value })}
             />
-            <label>
+
+            {/* ✅ Active toggle */}
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <input
                 type="checkbox"
                 checked={form.active}
                 onChange={(e) => setForm({ ...form, active: e.target.checked })}
-              />{" "}
-              Активно
+              />
+              Активно (показывать пользователям)
             </label>
+
             {form.image && (
               <img
                 src={form.image}
@@ -250,12 +298,23 @@ export default function AdminAfterLogin() {
                 style={{ maxWidth: 120, borderRadius: 8, marginTop: 8 }}
               />
             )}
+
             <button
               type="submit"
               className={`action-btn ${editingId ? "save" : ""}`}
             >
               {editingId ? "Сохранить" : "Добавить"}
             </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="cancel-btn"
+                style={{ marginLeft: 8 }}
+              >
+                Отмена
+              </button>
+            )}
           </form>
         </section>
 
