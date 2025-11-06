@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/firebaseConfig";
+ // если нужно
 import { cn } from "@/lib/utils";
 
 const categories = [
@@ -11,26 +14,34 @@ const categories = [
   { id: "desserts", name: "Desserts", nameRu: "Десерты" },
 ];
 
-const STORAGE_KEY = "menuData";
-
 export const MenuCategories = () => {
   const [activeCategory, setActiveCategory] = useState("snacks");
   const [menu, setMenu] = useState([]);
 
+  // ✅ Загружаем данные из Firestore
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const data = raw ? JSON.parse(raw) : [];
-      setMenu(data);
-    } catch (e) {
-      console.error("parse error:", e);
+    async function fetchMenu() {
+      try {
+        const q = query(collection(db, "menu"), where("active", "==", true));
+        const querySnapshot = await getDocs(q);
+        const items = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setMenu(items);
+      } catch (error) {
+        console.error("Error fetching menu:", error);
+      }
     }
+
+    fetchMenu();
   }, []);
 
   const filteredMenu = menu.filter((item) => item.type === activeCategory);
 
   return (
     <div>
+      {/* ===== Категории ===== */}
       <div className="bg-background border-b border-border sticky top-20 z-40 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex gap-6 overflow-x-auto py-6 scrollbar-hide">
@@ -52,6 +63,7 @@ export const MenuCategories = () => {
         </div>
       </div>
 
+      {/* ===== Список блюд ===== */}
       <div className="container mx-auto px-4 py-8 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredMenu.length ? (
           filteredMenu.map((item) => (
@@ -69,11 +81,6 @@ export const MenuCategories = () => {
                     alt={item.name}
                     className="w-full h-40 object-cover rounded-xl mb-3"
                   />
-                  {!item.active && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-sm rounded-xl">
-                      Не активно
-                    </div>
-                  )}
                 </div>
               )}
 

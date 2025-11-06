@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebaseConfig"; // ✅ make sure the path is correct
 
-export const MenuItems = () => {
+const MenuItems = () => {
   const [menuItems, setMenuItems] = useState([]);
 
   useEffect(() => {
@@ -76,3 +76,4 @@ export const MenuItems = () => {
     </section>
   );
 };
+export default MenuItems;
